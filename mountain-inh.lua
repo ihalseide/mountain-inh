@@ -1,4 +1,5 @@
 -- Izak's Lua utils
+-- Last updated 2023.07.11 09:54
 
 
 -- Return the number "x" clamped between the given minimum and maximum values
