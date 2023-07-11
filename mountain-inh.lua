@@ -1,5 +1,5 @@
 -- Izak's Lua utils
--- Last updated 2023.07.11 09:54
+-- Last updated 3:00 PM 7/11/2023
 
 
 -- Return the number "x" clamped between the given minimum and maximum values
@@ -15,15 +15,37 @@ end
 
 
 -- Linear interpolation from value "a" to value "b" specified by "t".
--- To be correct, "t" should be between 0 and 1.
+-- Usually, "t" should be between 0 and 1.
 function mix(a, b, t)
-	local t = clamp(t, 0, 1)
 	return a*(1 - t) + b*t
 end
 
 
+-- Re-mix `x` from an input range of `in1` to `in2` to an output range of `out1` to `out2`.
+-- For example: remix(0, 1, 3, 8, x) will map `x`
+--   from between 0 and 1 to be proportionally somewhere between 3 and 8.
+-- Note: This function may return values outside of the output range
+--   if `x` is already outside of the input range.
+-- This function copies the functionality of Processing's `map` function
+-- [https://processing.org/reference/map_.html]
+function remix(in1, in2, out1, out2, x)
+	return out1 + ((x - in1) * (out2 - out1) / (in2 - in1))
+end
+
+
+-- Note: Equivalent to `remix`, except that `x` will be kept inside the output range.
+function remixClamped(in1, in2, out1, out2, x)
+	local x = remix(in1, in2, out2, out2, x)
+	if out1 < out2 then
+		return clamp(x, out1, out2)
+	else
+		return clamp(x, out2, out1)
+	end
+end
+
+
 -- Ease with cubic smooth interpolation from value "a" to value "b"
--- To be correct, "t" should be between 0 and 1.
+-- Usually, "t" should be between 0 and 1.
 function ease(a, b, t)
 	return mix(a, b, cubicUnit(clamp(t, 0, 1)))
 end
@@ -83,22 +105,25 @@ end
 
 -- Escape special characters in a string
 function escape(s)
+	return string.format("%q", s)
+	--[[
 	if type(s) ~= "string" then
 		error("function `escape` is only defined for strings")
 	end
 	
 	local t = {}
 	for c in s:gmatch"." do
-		if c == "\n" then t[1+#t] = "\\n"      -- literal \n
-		elseif c == "\r" then t[1+#t] = "\\r"  -- literal \r
-		elseif c == "\t" then t[1+#t] = "\\t"  -- literal \t
-		elseif c == "\"" then t[1+#t] = "\\\"" -- literal \"
-		elseif c == "\\" then t[1+#t] = "\\\\" -- literal \\
-		elseif c == "\'" then t[1+#t] = "\\\'" -- literal \'
-		else t[1+#t] = c
+		if c == "\n" then t[1 + #t] = "\\n"      -- literal \n
+		elseif c == "\r" then t[1 + #t] = "\\r"  -- literal \r
+		elseif c == "\t" then t[1 + #t] = "\\t"  -- literal \t
+		elseif c == "\"" then t[1 + #t] = "\\\"" -- literal \"
+		elseif c == "\\" then t[1 + #t] = "\\\\" -- literal \\
+		elseif c == "\'" then t[1 + #t] = "\\\'" -- literal \'
+		else t[1 + #t] = c
 		end
 	end
 	return table.concat(t)
+	--]]
 end
 
 
@@ -112,7 +137,7 @@ function quote(x, level)
 	
 	if type(x) == "string" then
 		-- Make strings appear the same as in literal form
-		return table.concat({"\"", escape(x), "\""})
+		return escape(x)
 	elseif type(x) == "table" then
 		local m = getmetatable(x)
 		if (level and level <= 0) or (m and m.__tostring) then
@@ -124,9 +149,9 @@ function quote(x, level)
 			for k, v in pairs(x) do
 				if type(k) == "string" and k:match("^%w+$") then
 					-- Key can be unquoted because it is a valid identifier word
-					t[1+#t] = k .. " = " .. quote(v, next_level)
+					t[1 + #t] = k .. " = " .. quote(v, next_level)
 				else
-					t[1+#t] = "[" .. quote(k, next_level) .. "] = " .. quote(v, next_level)
+					t[1 + #t] = "[" .. quote(k, next_level) .. "] = " .. quote(v, next_level)
 				end
 			end
 			return table.concat({"{", table.concat(t, ", "), "}"})
