@@ -1,5 +1,14 @@
 -- Izak's Lua utils
--- Last updated 3:00 PM 7/11/2023
+-- Last updated 6:06 PM 7/13/2023
+
+
+function keyCount(table)
+  local n = 0
+  for _, _ in pairs(table) do
+    n = n + 1
+  end
+  return n
+end
 
 
 -- Return the number "x" clamped between the given minimum and maximum values
@@ -159,4 +168,43 @@ function quote(x, level)
 	else
 		return tostring(x)
 	end
+end
+
+
+-- Queue object
+Queue = {}
+Queue.mt = {}
+
+function Queue.new()
+  local obj = {first = 0, last = -1}
+  return setmetatable(obj, Queue.mt)
+end
+
+function Queue:isEmpty()
+    return self.last < self.first
+end
+
+function Queue:put(value)
+  local last = self.last + 1
+  self.last = last
+  self[last] = value
+end
+
+function Queue:pop()
+  local first = self.first
+  if first > self.last then
+      --error("Queue is empty")
+      return nil
+  end
+  local value = self[first]
+  self[first] = nil        -- to allow garbage collection
+  self.first = first + 1
+  
+  -- Indices can reset if empty
+  if Queue.isEmpty(self) then
+    self.first = 0
+    self.last = -1
+  end
+  
+  return value
 end
