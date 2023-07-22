@@ -2,6 +2,7 @@
 -- Last updated 6:06 PM 7/13/2023
 
 
+-- Count the number of items in a table
 function keyCount(table)
   local n = 0
   for _, _ in pairs(table) do
@@ -11,7 +12,7 @@ function keyCount(table)
 end
 
 
--- Return the number "x" clamped between the given minimum and maximum values
+-- Return the number "x" clamped between the given minimum and maximum values (inclusive)
 function clamp(x, minX, maxX)
 	if x > maxX then
 		return maxX
@@ -214,8 +215,8 @@ end
 Sparse2D = {}
 Sparse2D.mt = {}
 
-function Sparse2D.new()
-  return setmetatable({}, Sparse2D.mt)
+function Sparse2D.new(t)
+  return setmetatable(t or {}, Sparse2D.mt)
 end
 
 
@@ -234,6 +235,22 @@ Sparse2D.mt.__index = function(table, key)
     return nil
   end
   return rawget(table, key)
+end
+
+
+Sparse2D.mt.__newindex = function(table, key, val)
+	if type(key) == 'table' then
+    if #key == 2 then
+      local a, b = unpack(key)
+      for k, v in pairs(table) do
+        if k[1] == a and k[2] == b then
+          rawset(table, k, val)
+          return
+        end
+      end
+    end
+  end
+  return rawset(table, key, val)
 end
 
 
