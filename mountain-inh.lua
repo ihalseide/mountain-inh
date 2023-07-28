@@ -1,6 +1,5 @@
 -- Izak's Lua utils
--- Last updated 8:35 AM 7/28/2023
-
+-- Last updated 8:40 AM 7/28/2023
 
 -- Count the number of items in a table
 function keyCount(table)
@@ -10,7 +9,6 @@ function keyCount(table)
   end
   return n
 end
-
 
 -- Return the number "x" clamped between the given minimum and maximum values (inclusive)
 function clamp(x, minX, maxX)
@@ -23,13 +21,11 @@ function clamp(x, minX, maxX)
 	end
 end
 
-
 -- Linear interpolation from value "a" to value "b" specified by "t".
 -- Usually, "t" should be between 0 and 1.
 function mix(a, b, t)
 	return a*(1 - t) + b*t
 end
-
 
 -- Re-mix `x` from an input range of `in1` to `in2` to an output range of `out1` to `out2`.
 -- For example: remix(0, 1, 3, 8, x) will map `x`
@@ -42,7 +38,6 @@ function remix(in1, in2, out1, out2, x)
 	return out1 + ((x - in1) * (out2 - out1) / (in2 - in1))
 end
 
-
 -- Note: Equivalent to `remix`, except that `x` will be kept inside the output range.
 function remixClamped(in1, in2, out1, out2, x)
 	local x = remix(in1, in2, out2, out2, x)
@@ -53,13 +48,11 @@ function remixClamped(in1, in2, out1, out2, x)
 	end
 end
 
-
 -- Ease with cubic smooth interpolation from value "a" to value "b"
 -- Usually, "t" should be between 0 and 1.
 function ease(a, b, t)
 	return mix(a, b, cubicUnit(clamp(t, 0, 1)))
 end
-
 
 -- Cubic function that forms a sort of sigmoid in the unit square.
 -- Such that: f(0) = 0, f(0.5) = 0.5, and f(1) = 1, and f'(0) = 0, and f'(1) = 0.
@@ -67,7 +60,6 @@ end
 function cubicUnit(x)
 	return x*x*(3 - 2*x)
 end
-
 
 -- GLSL smoothstep function of "x" between "edge1" and "edge2"
 -- https://docs.gl/sl4/smoothstep
@@ -79,13 +71,11 @@ function smoothstep(edge1, edge2, x)
 	return cubicUnit(t)
 end
 
-
 -- Treat "b" as a boolean value and convert it to 1 for true and 0 for false.
+-- Only 'nil' and 'false' map to 0, and everything else maps to 1.
 function boolToInt(b)
-	if b then return 1
-	else return 0 end
+	return b and 1 or 0
 end
-
 
 -- Generates a step function, by comparing "x" to "edge".
 -- Parameters "edge" and "x" can either be tables or numbers, but must both be the same type.
@@ -112,7 +102,6 @@ function step(edge, x)
 	end
 end
 
-
 -- Escape special characters in a string
 function escape(s)
 	return string.format("%q", s)
@@ -135,7 +124,6 @@ function escape(s)
 	return table.concat(t)
 	--]]
 end
-
 
 -- See a string representation of "x".
 -- Level is the number of levels of recursion to allow when presenting a table
@@ -170,7 +158,6 @@ function quote(x, level)
 		return tostring(x)
 	end
 end
-
 
 -- Queue object
 Queue = {}
@@ -210,7 +197,6 @@ function Queue:pop()
   return value
 end
 
-
 -- Sparse 2D grid
 Sparse2D = {}
 Sparse2D.mt = {}
@@ -218,7 +204,6 @@ Sparse2D.mt = {}
 function Sparse2D.new(t)
   return setmetatable(t or {}, Sparse2D.mt)
 end
-
 
 -- Lookup table with a keys being defined as equal if the 2 elements are equal
 -- If the key is not present, fall back on rawget()
@@ -237,7 +222,6 @@ Sparse2D.mt.__index = function(table, key)
   return rawget(table, key)
 end
 
-
 Sparse2D.mt.__newindex = function(table, key, val)
 	if type(key) == 'table' then
     if #key == 2 then
@@ -252,7 +236,6 @@ Sparse2D.mt.__newindex = function(table, key, val)
   end
   return rawset(table, key, val)
 end
-
 
 -- Check if a table contains a value as a member.
 function member(item, aTable)
