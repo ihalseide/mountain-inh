@@ -1,5 +1,5 @@
 -- Izak's Lua utils
--- Last updated 6:06 PM 7/13/2023
+-- Last updated 8:35 AM 7/28/2023
 
 
 -- Count the number of items in a table
