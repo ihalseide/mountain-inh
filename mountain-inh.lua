@@ -164,7 +164,7 @@ function quote(x, level)
 					t[1 + #t] = "[" .. quote(k, next_level) .. "] = " .. quote(v, next_level)
 				end
 			end
-			return table.concat({"{", table.concat(t, ", "), "}"})
+			return table.concat({"{", table.concat(t, ", "), "}"}) -- (join)
 		end
 	else
 		return tostring(x)
@@ -255,11 +255,12 @@ end
 
 
 -- Check if a table contains a value as a member.
-function member(item, table)
-  for _, val in pairs(table) do
-    if item == val then
-      return true
-    end
+function member(item, aTable)
+  if type(aTable) ~= 'table' then
+    error('member: arg #2 should be table', 2)
+  end
+  for _, val in pairs(aTable) do
+    if item == val then return true end
   end
   return false
 end
