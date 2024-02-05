@@ -1,7 +1,6 @@
 --[[
-
 MOUNTAIN-INH.LUA
-Izak's Lua utils.
+Izak Nathanael Halseide's Lua utilities.
 "Build your mountain."
 
 USAGE:
@@ -14,6 +13,7 @@ CHANGE LOG:
 	Started keeping track of updates.
 
 ]]
+
 
 local M = {
 	__version = 'mountain-inh.lua 2024-02-05 3:00PM'
