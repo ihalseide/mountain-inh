@@ -1,52 +1,60 @@
--- Izak's Lua utils
--- Last updated 8:40 AM 7/28/2023
+-- Izak's Lua utils. "Build your mountain."
+-- Last updated 2024-02-05 1:21PM
 
--- Count the number of items in a table
-function keyCount(table)
-  local n = 0
-  for _, _ in pairs(table) do
-    n = n + 1
-  end
-  return n
+
+-- Convert a list (table) to a string
+function listToString(T)
+	return table.concat({ '{', table.concat(T, ', '), '}' }, '')
 end
+
+
+-- Count the number of items (length) in a table.
+function keyCount(table)
+	local n = 0
+	for _, _ in pairs(table) do
+		n = n + 1
+	end
+	return n
+end
+
 
 -- Return the number "x" clamped between the given minimum and maximum values (inclusive)
-function clamp(x, minX, maxX)
-	if x > maxX then
-		return maxX
-	elseif x < minX then
-		return minX
-	else
-		return x
-	end
+function clamp(x, x1, x2)
+	local hi = math.max(x1, x2)
+	local lo = math.min(x1, x2)
+	return math.min(hi, math.max(lo, x))
 end
+
 
 -- Linear interpolation from value "a" to value "b" specified by "t".
 -- Usually, "t" should be between 0 and 1.
 function mix(a, b, t)
-	return a*(1 - t) + b*t
+	return a * (1 - t) + b * t
 end
 
+
 -- Re-mix `x` from an input range of `in1` to `in2` to an output range of `out1` to `out2`.
--- For example: remix(0, 1, 3, 8, x) will map `x`
+-- For example: remix(x, 0, 1, 3, 8) will map `x`
 --   from between 0 and 1 to be proportionally somewhere between 3 and 8.
 -- Note: This function may return values outside of the output range
 --   if `x` is already outside of the input range.
 -- This function copies the functionality of Processing's `map` function
 -- [https://processing.org/reference/map_.html]
-function remix(in1, in2, out1, out2, x)
+function remix(x, in1, in2, out1, out2)
 	return out1 + ((x - in1) * (out2 - out1) / (in2 - in1))
 end
 
+
 -- Note: Equivalent to `remix`, except that `x` will be kept inside the output range.
 function remixClamped(in1, in2, out1, out2, x)
-	local x = remix(in1, in2, out2, out2, x)
+	local y = remix(x, in1, in2, out2, out2)
 	if out1 < out2 then
-		return clamp(x, out1, out2)
+		return clamp(y, out1, out2)
 	else
-		return clamp(x, out2, out1)
+		return clamp(y, out2, out1)
 	end
 end
+
 
 -- Ease with cubic smooth interpolation from value "a" to value "b"
 -- Usually, "t" should be between 0 and 1.
@@ -54,12 +62,14 @@ function ease(a, b, t)
 	return mix(a, b, cubicUnit(clamp(t, 0, 1)))
 end
 
+
 -- Cubic function that forms a sort of sigmoid in the unit square.
 -- Such that: f(0) = 0, f(0.5) = 0.5, and f(1) = 1, and f'(0) = 0, and f'(1) = 0.
 -- The solution is: f(x) = (x^2)*(3 - 2*x) = 3(x^2) - 2(x^3)
 function cubicUnit(x)
-	return x*x*(3 - 2*x)
+	return x * x * (3 - 2 * x)
 end
+
 
 -- GLSL smoothstep function of "x" between "edge1" and "edge2"
 -- https://docs.gl/sl4/smoothstep
@@ -71,19 +81,24 @@ function smoothstep(edge1, edge2, x)
 	return cubicUnit(t)
 end
 
+
 -- Treat "b" as a boolean value and convert it to 1 for true and 0 for false.
 -- Only 'nil' and 'false' map to 0, and everything else maps to 1.
 function boolToInt(b)
 	return b and 1 or 0
 end
 
+
+-- helper function for step()
+local function step_1(edge_1, x_1)
+	return boolToInt(x_1 < edge_1)
+end
+
+
 -- Generates a step function, by comparing "x" to "edge".
 -- Parameters "edge" and "x" can either be tables or numbers, but must both be the same type.
 -- Returns either a single number or an array of numbers.
 function step(edge, x)
-	-- helper function 
-	local function step_1(edge_1, x_1) return boolToInt(x_1 < edge_1) end
-
 	if type(edge) ~= type(x) then
 		error("function `step`: `edge` and `x` should be the same type", 2)
 	elseif type(edge) == "number" then
@@ -101,6 +116,7 @@ function step(edge, x)
 		error("function `step`: `edge` and `x` should both be numbers or tables")
 	end
 end
+
 
 -- Escape special characters in a string
 function escape(s)
@@ -125,14 +141,15 @@ function escape(s)
 	--]]
 end
 
+
 -- See a string representation of "x".
 -- Level is the number of levels of recursion to allow when presenting a table
 function quote(x, level)
 	local next_level = level
 	if next_level then
 		next_level = level - 1
-	end	
-	
+	end
+
 	if type(x) == "string" then
 		-- Make strings appear the same as in literal form
 		return escape(x)
@@ -152,98 +169,244 @@ function quote(x, level)
 					t[1 + #t] = "[" .. quote(k, next_level) .. "] = " .. quote(v, next_level)
 				end
 			end
-			return table.concat({"{", table.concat(t, ", "), "}"}) -- (join)
+			return table.concat({ "{", table.concat(t, ", "), "}" }) -- (join)
 		end
 	else
 		return tostring(x)
 	end
 end
 
+
 -- Queue object
 Queue = {}
 Queue.mt = {}
 
 function Queue.new()
-  local obj = {first = 0, last = -1}
-  return setmetatable(obj, Queue.mt)
+	local obj = { first = 0, last = -1 }
+	return setmetatable(obj, Queue.mt)
 end
 
 function Queue:isEmpty()
-    return self.last < self.first
+	return self.last < self.first
 end
 
 function Queue:put(value)
-  local last = self.last + 1
-  self.last = last
-  self[last] = value
+	local last = self.last + 1
+	self.last = last
+	self[last] = value
 end
 
 function Queue:pop()
-  local first = self.first
-  if first > self.last then
-      --error("Queue is empty")
-      return nil
-  end
-  local value = self[first]
-  self[first] = nil        -- to allow garbage collection
-  self.first = first + 1
-  
-  -- Indices can reset if empty
-  if Queue.isEmpty(self) then
-    self.first = 0
-    self.last = -1
-  end
-  
-  return value
+	local first = self.first
+	if first > self.last then
+		--error("Queue is empty")
+		return nil
+	end
+	local value = self[first]
+	self[first] = nil -- to allow garbage collection
+	self.first = first + 1
+
+	-- Indices can reset if empty
+	if Queue.isEmpty(self) then
+		self.first = 0
+		self.last = -1
+	end
+
+	return value
 end
 
--- Sparse 2D grid
+
+-- Sparse 2D grid object.
+-- Used for indexing a table with a key that is a 2-element integer list.
+-- Example:
+--   local grid = Sparse2D.new()
+--   grid[{1, 2}] = 'Value here'
+--   print(grid[{1, 2}]) --> 'Value here'
 Sparse2D = {}
 Sparse2D.mt = {}
 
+-- Create a new Sparse2D object (`t` is optional)
 function Sparse2D.new(t)
-  return setmetatable(t or {}, Sparse2D.mt)
+	return setmetatable((t or {}), Sparse2D.mt)
 end
 
 -- Lookup table with a keys being defined as equal if the 2 elements are equal
 -- If the key is not present, fall back on rawget()
 Sparse2D.mt.__index = function(table, key)
-	if type(key) == 'table' then
-    if #key == 2 then
-      local a, b = unpack(key)
-      for k, v in pairs(table) do
-        if k[1] == a and k[2] == b then
-          return v
-        end
-      end
-    end
-    return nil
-  end
-  return rawget(table, key)
+	if not type(key) == 'table' then return nil end
+	if #key < 2 then return nil end
+	local a, b = key[1], key[2]
+	if not isInteger(a) then return nil end
+	if not isInteger(b) then return nil end
+	for k, v in pairs(table) do
+		if k[1] == a and k[2] == b then
+			return v
+		end
+	end
+	return nil
 end
 
 Sparse2D.mt.__newindex = function(table, key, val)
-	if type(key) == 'table' then
-    if #key == 2 then
-      local a, b = unpack(key)
-      for k, v in pairs(table) do
-        if k[1] == a and k[2] == b then
-          rawset(table, k, val)
-          return
-        end
-      end
-    end
-  end
-  return rawset(table, key, val)
+	if not type(key) == 'table' then return nil end
+	if #key < 2 then return nil end
+	local a, b = key[1], key[2]
+	if not isInteger(a) then return nil end
+	if not isInteger(b) then return nil end
+	for k, v in pairs(table) do
+		if k[1] == a and k[2] == b then
+			-- This key already exists, so update the value
+			rawset(table, k, val)
+			return
+		end
+	end
+	-- This key does not exist, so add it
+	rawset(table, key, val)
 end
 
 -- Check if a table contains a value as a member.
 function member(item, aTable)
-  if type(aTable) ~= 'table' then
-    error('member: arg #2 should be table', 2)
-  end
-  for _, val in pairs(aTable) do
-    if item == val then return true end
-  end
-  return false
+	if type(aTable) ~= 'table' then
+		error('member: argument #2 should be table', 2)
+	end
+	for _, val in pairs(aTable) do
+		if item == val then return true end
+	end
+	return false
+end
+
+
+-- Check if a value `x` is an integer number.
+function isInteger(x)
+	-- Lua numbers have a fractional part, and for integers modulo 1 is 0.
+	return (type(x) == 'number') and (x % 1) == 0
+end
+
+
+-- Reverse the order of elements in a list (table) `t`.
+function reverseTable(t)
+	local result = {}
+	local len = #t
+	for i, x in ipairs(t) do
+		result[len - i + 1] = x
+	end
+	return result
+end
+
+
+-- Returns true if `n` is prime, and false if it is composite.
+function isPrime(n)
+	---@type integer
+	local limit = 1 + math.floor(math.sqrt(n))
+	for f = 2, limit do
+		if n % f == 0 then
+			return false, f
+		end
+	end
+	return n >= 2
+end
+
+
+-- Returns a table of 1's and 0's to represent N in a binary string.
+-- (I originally created this function for powMod(), but it is not used there and is useful on its own).
+function toBinary(n)
+	if not isInteger(n) then return end
+	if n < 0 then return end
+	if n == 0 then return '0' end
+	local result = {}
+	local i = 1
+	while n > 0 do
+		result[i] = n % 2
+		n = math.floor(n / 2)
+		i = i + 1
+	end
+	return reverseTable(result)
+end
+
+
+-- Square-and-multiply algorithm to compute the value of:
+-- B^E mod M where B is the base, E is the positive exponent, and M is the modulus.
+-- This function is only for non-negative exponents (including 0).
+function powModNonNegative(base, exponent, modulus)
+	if (not isInteger(base)) or base <= 0 then return end
+	if (not isInteger(exponent)) or exponent < 0 then return end
+	if (not isInteger(modulus)) or modulus <= 0 then return end
+	local a, b = base, 1
+	while exponent > 0 do
+		if exponent % 2 == 1 then
+			b = (a * b) % modulus
+		end
+		a = (a * a) % modulus
+		exponent = math.floor(exponent / 2)
+	end
+	return b
+end
+
+
+-- POWer MODulo.
+-- Compute B^E mod M where B is the base, E is the exponent, and M is the modulus.
+-- Works for negative exponents as well.
+function powMod(base, exponent, modulus)
+	if exponent < 0 then
+		return inverseMod(powModNonNegative(base, -exponent, modulus), modulus)
+	else
+		return powModNonNegative(base, exponent, modulus)
+	end
+end
+
+
+-- POWer MODulo for a modulus that may or may not be prime.
+-- This function assumes that `modulusIsPrime` is accurate.
+function powModPrime(base, exponent, modulus, modulusIsPrime)
+	if modulusIsPrime then
+		-- Using Fermat's little theorem, we know that we can reduce the exponent this way
+		-- when the modulus is prime.
+		exponent = exponent % (modulus - 1)
+	end
+	return powMod(base, exponent, modulus)
+end
+
+
+-- Floor division (implements C-like integer division for Lua)
+function floorDiv(dividend, divisor)
+	return math.floor(dividend / divisor)
+end
+
+
+-- Greatest common divisor of two integers `a` and `b`.
+-- Return (g, u, v) for the solution of:
+--   a*u + b*v = gcd(a, b)
+-- (This is the extended Euclidean algorithm).
+function gcd(a, b)
+	if (not isInteger(a)) or a < 0 then return end
+	if (not isInteger(b)) or b < 0 then return end
+	local u, g, x, y = 1, a, 0, b
+	if b == 0 then
+		return a, 1, 0
+	end
+	while y ~= 0 do
+		local q = floorDiv(g, y)
+		local t = g % y
+		local s = u - q * x
+		u = x
+		g = y
+		x = s
+		y = t
+	end
+	local v = (g - a * u) / b
+	return g, u, v
+end
+
+
+-- Find multiplicative inverse of X mod M
+function inverseMod(x, modulus)
+	g, u, v = gcd(x, modulus)
+	if g ~= 1 then
+		-- No inverse
+		return nil
+	end
+	-- Make sure result is positive
+	while u < 0 do
+		u = u + modulus
+	end
+	return u
 end
