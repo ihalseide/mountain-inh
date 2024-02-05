@@ -78,6 +78,27 @@ function test_Sparse2D()
 end
 
 
+function test_needsQuote()
+    print("Testing needsQuote()")
+    assert(true == needsQuote('and'))
+    assert(true == needsQuote('{'))
+    assert(false == needsQuote('xor'))
+    assert(true == needsQuote(3))
+    assert(false == needsQuote('3'))
+end
+
+
+function test_quote()
+    print("Testing quote()")
+    assert('"3"' == quote('3'), "3 should be quoted as '3'")
+    assert('{[1] = 1, [2] = 2, [3] = 3}' == quote({1,2,3}))
+    -- testing a table with a keyword string key
+    local t = {}
+    t['and'] = 'yes'
+    assert('{["and"] = "yes"}' == quote(t))
+end
+
+
 print("Testing...")
 test_member()
 test_isInteger()
@@ -85,4 +106,6 @@ test_isPrime()
 test_tableEqual()
 test_reverseTable()
 test_Sparse2D()
+test_needsQuote()
+test_quote()
 print("All tests passed!")
