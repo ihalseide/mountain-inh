@@ -79,13 +79,13 @@ end
 -- Ease with cubic smooth interpolation from value "a" to value "b"
 -- Usually, "t" should be between 0 and 1.
 local function ease(a, b, t)
-	return mix(a, b, cubicUnit(clamp(t, 0, 1)))
+	return mix(a, b, M.cubicUnit(clamp(t, 0, 1)))
 end
 
 
 -- Cubic function that forms a sort of sigmoid in the unit square.
 -- Such that: f(0) = 0, f(0.5) = 0.5, and f(1) = 1, and f'(0) = 0, and f'(1) = 0.
--- The solution is: f(x) = (x^2)*(3 - 2*x) = 3(x^2) - 2(x^3)
+-- The solution is: f(x) = (x^2)*(3 - 2*x) = 3*(x^2) - 2*(x^3)
 local function cubicUnit(x)
 	return x * x * (3 - 2 * x)
 end
