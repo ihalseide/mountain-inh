@@ -150,7 +150,7 @@ function needsQuote(k)
 		"if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true",
 		"until", "while"
 	}
-	return type(k) ~= "string" or k:match("^%w+$") or member(k, luaKeywords)
+	return type(k) ~= "string" or (not k:match("^%w+$")) or member(k, luaKeywords)
 end
 
 
