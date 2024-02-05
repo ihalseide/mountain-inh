@@ -142,8 +142,21 @@ function escape(s)
 end
 
 
+-- Return if a string needs to be quoted because it has non-word characters or is a keyword.
+-- Helper function for quote().
+function needsQuote(k)
+	local luaKeywords = {
+		"and", "break", "do", "else", "elseif", "end", "false", "for", "function",
+		"if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true",
+		"until", "while"
+	}
+	return type(k) ~= "string" or k:match("^%w+$") or member(k, luaKeywords)
+end
+
+
 -- See a string representation of "x".
--- Level is the number of levels of recursion to allow when presenting a table
+-- The 'level' is the number of levels of recursion to allow when presenting a table.
+-- If `level` is omitted, there will be no limit.
 function quote(x, level)
 	local next_level = level
 	if next_level then
@@ -162,10 +175,12 @@ function quote(x, level)
 			-- Recursively print a whole table
 			local t = {}
 			for k, v in pairs(x) do
-				if type(k) == "string" and k:match("^%w+$") then
+				if not needsQuote(k) then
 					-- Key can be unquoted because it is a valid identifier word
+					-- (this doesn't check for Lua keywords, though!)
 					t[1 + #t] = k .. " = " .. quote(v, next_level)
 				else
+					-- Key is such that it must be quoted
 					t[1 + #t] = "[" .. quote(k, next_level) .. "] = " .. quote(v, next_level)
 				end
 			end
@@ -264,6 +279,7 @@ Sparse2D.mt.__newindex = function(table, key, val)
 end
 
 -- Check if a table contains a value as a member.
+-- If the `item` is a table, this function will only check for reference equality (normal for Lua).
 function member(item, aTable)
 	if type(aTable) ~= 'table' then
 		error('member: argument #2 should be table', 2)
@@ -294,12 +310,17 @@ end
 
 
 -- Returns true if `n` is prime, and false if it is composite.
+-- The `n` should be non-negative.
 function isPrime(n)
-	---@type integer
+	assert(isInteger(n), "isPrime: argument #1 should be an integer")
+	assert(n >= 0, "isPrime: argument #1 should be non-negative")
 	local limit = 1 + math.floor(math.sqrt(n))
-	for f = 2, limit do
-		if n % f == 0 then
-			return false, f
+	if n == 2 then
+		return true
+	end
+	for factor = 2, limit do
+		if n % factor == 0 then
+			return false, factor
 		end
 	end
 	return n >= 2
@@ -400,7 +421,7 @@ end
 
 -- Find multiplicative inverse of X mod M
 function inverseMod(x, modulus)
-	g, u, v = gcd(x, modulus)
+	local g, u, v = gcd(x, modulus)
 	if g ~= 1 then
 		-- No inverse
 		return nil
@@ -410,4 +431,32 @@ function inverseMod(x, modulus)
 		u = u + modulus
 	end
 	return u
+end
+
+
+-- Check if two tables are equal.
+-- This is shallow, non deep: i.e. does not compare elements which are tables.
+function tableEqual(a, b)
+	if type(a) ~= 'table' or type(b) ~= 'table' then
+		return false
+	end
+	-- Same table reference?
+	if a == b then
+		return true
+	end
+	-- Different array length?
+	if #a ~= #b then
+		return false
+	end
+	-- Different key count?
+	if keyCount(a) ~= keyCount(b) then
+		return false
+	end
+	-- Different elements?
+	for k, v in pairs(a) do
+		if b[k] ~= v then
+			return false
+		end
+	end
+	return true
 end
