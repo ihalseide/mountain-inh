@@ -102,7 +102,7 @@ function step(edge, x)
 	if type(edge) ~= type(x) then
 		error("function `step`: `edge` and `x` should be the same type", 2)
 	elseif type(edge) == "number" then
-		return step1(edge, x)
+		return step_1(edge, x)
 	elseif type(edge) == "table" then
 		if #edge ~= #x then
 			error("function `step`: parameters should have the same length", 2)
@@ -355,6 +355,7 @@ end
 
 
 -- POWer MODulo for a modulus that may or may not be prime.
+-- Compute B^E mod M where B is the base, E is the exponent, and M is the modulus.
 -- This function assumes that `modulusIsPrime` is accurate.
 function powModPrime(base, exponent, modulus, modulusIsPrime)
 	if modulusIsPrime then
@@ -372,7 +373,7 @@ function floorDiv(dividend, divisor)
 end
 
 
--- Greatest common divisor of two integers `a` and `b`.
+-- Find the Greatest Common Divisor of two integers `a` and `b`.
 -- Return (g, u, v) for the solution of:
 --   a*u + b*v = gcd(a, b)
 -- (This is the extended Euclidean algorithm).
