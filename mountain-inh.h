@@ -142,20 +142,22 @@ long LListLength(LListNode_t *list)
 //   (or is this called "un-escaping"?)
 // Converts escape sequences into the corresponding real ASCII
 // values.
+// Only handles 1-character escape codes. (No support for hex '\x1b' or unicode '\u1234').
 // Modifies the string in-place
+// Returns the length of the new string (which should be less than or equal to the original length).
 unsigned stringEscape(char *str, unsigned len)
 {
-    if (!str || len <= 0) { return 0; }
+    if (!str) { return 0; }
     unsigned r = 0; // read index
     unsigned w = 0; // write index
-    while (r < len && str[r])
+    while ((r < len) && (str[r] != 0))
     {
+        assert(w <= r);
         char c = str[r];
         if (c == '\\')
         {
             r++;
-            c = str[r];
-            switch (c)
+            switch (str[r])
             {
                 case 'e': // escape
                     c = '\x1b';
@@ -177,6 +179,7 @@ unsigned stringEscape(char *str, unsigned len)
                     break;
                 default:
                     // default result character is itself
+                    c = str[r];
                     break;
             }
         }
