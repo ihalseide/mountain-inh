@@ -1,8 +1,9 @@
 -- Do testing for "mountain-inh.lua"
-require 'mountain-inh'
+I = require 'mountain-inh'
 
 function test_member()
     print("Testing member()")
+    local member = I.member
     t = {'apple', 3, -12.2, 'Bob'}
     assert(true == member('apple', t), "apple should be a member of t")
     assert(false == member('orange', t), "orange should not be a member of t")
@@ -12,6 +13,7 @@ end
 
 function test_isInteger()
     print("Testing isInteger()")
+    local isInteger = I.isInteger
     assert(true == isInteger(3), "3 should be an integer")
     assert(false == isInteger(3.14), "3.14 should not be an integer")
     for i = -12, 12 do
@@ -26,6 +28,7 @@ end
 
 function test_tableEqual()
     print("Testing tableEqual()")
+    local tableEqual = I.tableEqual
     assert(true == tableEqual({}, {}))
     assert(true == tableEqual({1}, {1}))
     assert(true == tableEqual({1, 2}, {1, 2}))
@@ -38,6 +41,8 @@ end
 
 function test_reverseTable()
     print("Testing reverseTable()")
+    local tableEqual = I.tableEqual
+    local reverseTable = I.reverseTable
     assert(true == tableEqual({3, 2, 1}, reverseTable({1, 2, 3})))
     assert(true == tableEqual({2, 1}, reverseTable({1, 2})))
     assert(true == tableEqual({1}, reverseTable({1})))
@@ -47,6 +52,7 @@ end
 
 function test_isPrime()
     print("Testing isPrime()")
+    local isPrime = I.isPrime
     comp = {0, 4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20}
     prim = {2, 3, 5, 7, 11, 13, 17, 19}
     for _, c in ipairs(comp) do
@@ -60,6 +66,8 @@ end
 
 function test_Sparse2D()
     print("Testing Sparse2D")
+    local Sparse2D = I.Sparse2D
+    local tableEqual = I.tableEqual
     local s = Sparse2D.new()
     assert(true == tableEqual({}, s), "s should be an empty table")
     -- Make sure the default value is nil
@@ -80,6 +88,7 @@ end
 
 function test_needsQuote()
     print("Testing needsQuote()")
+    local needsQuote = I.needsQuote
     assert(true == needsQuote('and'))
     assert(true == needsQuote('{'))
     assert(false == needsQuote('xor'))
@@ -90,6 +99,7 @@ end
 
 function test_quote()
     print("Testing quote()")
+    local quote = I.quote
     assert('"3"' == quote('3'), "3 should be quoted as '3'")
     assert('{[1] = 1, [2] = 2, [3] = 3}' == quote({1,2,3}))
     -- testing a table with a keyword string key

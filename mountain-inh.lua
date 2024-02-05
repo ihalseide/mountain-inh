@@ -1,15 +1,35 @@
--- Izak's Lua utils. "Build your mountain."
--- Last updated 2024-02-05 1:21PM
+--[[
+
+MOUNTAIN-INH.LUA
+Izak's Lua utils.
+"Build your mountain."
+
+USAGE:
+Copy this file into a Lua project, remove unwanted dependencies, and require() it.
+
+CHANGE LOG:
+
+-- Update [ 2024-02-05 3:00PM ]
+    Turned this file into a Lua module.
+	Started keeping track of updates.
+
+]]
+
+local M = {
+	__version = 'mountain-inh.lua 2024-02-05 3:00PM'
+}
 
 
 -- Convert a list (table) to a string
-function listToString(T)
+local function listToString(T)
 	return table.concat({ '{', table.concat(T, ', '), '}' }, '')
+	-- alternative:
+	--return '{' .. table.concat(T, ', ') .. '}'
 end
 
 
 -- Count the number of items (length) in a table.
-function keyCount(table)
+local function keyCount(table)
 	local n = 0
 	for _, _ in pairs(table) do
 		n = n + 1
@@ -19,7 +39,7 @@ end
 
 
 -- Return the number "x" clamped between the given minimum and maximum values (inclusive)
-function clamp(x, x1, x2)
+local function clamp(x, x1, x2)
 	local hi = math.max(x1, x2)
 	local lo = math.min(x1, x2)
 	return math.min(hi, math.max(lo, x))
@@ -28,7 +48,7 @@ end
 
 -- Linear interpolation from value "a" to value "b" specified by "t".
 -- Usually, "t" should be between 0 and 1.
-function mix(a, b, t)
+local function mix(a, b, t)
 	return a * (1 - t) + b * t
 end
 
@@ -40,13 +60,13 @@ end
 --   if `x` is already outside of the input range.
 -- This function copies the functionality of Processing's `map` function
 -- [https://processing.org/reference/map_.html]
-function remix(x, in1, in2, out1, out2)
+local function remix(x, in1, in2, out1, out2)
 	return out1 + ((x - in1) * (out2 - out1) / (in2 - in1))
 end
 
 
 -- Note: Equivalent to `remix`, except that `x` will be kept inside the output range.
-function remixClamped(in1, in2, out1, out2, x)
+local function remixClamped(in1, in2, out1, out2, x)
 	local y = remix(x, in1, in2, out2, out2)
 	if out1 < out2 then
 		return clamp(y, out1, out2)
@@ -58,7 +78,7 @@ end
 
 -- Ease with cubic smooth interpolation from value "a" to value "b"
 -- Usually, "t" should be between 0 and 1.
-function ease(a, b, t)
+local function ease(a, b, t)
 	return mix(a, b, cubicUnit(clamp(t, 0, 1)))
 end
 
@@ -66,14 +86,14 @@ end
 -- Cubic function that forms a sort of sigmoid in the unit square.
 -- Such that: f(0) = 0, f(0.5) = 0.5, and f(1) = 1, and f'(0) = 0, and f'(1) = 0.
 -- The solution is: f(x) = (x^2)*(3 - 2*x) = 3(x^2) - 2(x^3)
-function cubicUnit(x)
+local function cubicUnit(x)
 	return x * x * (3 - 2 * x)
 end
 
 
 -- GLSL smoothstep function of "x" between "edge1" and "edge2"
 -- https://docs.gl/sl4/smoothstep
-function smoothstep(edge1, edge2, x)
+local function smoothstep(edge1, edge2, x)
 	if edge1 >= edge2 then
 		error("function `smoothstep`: result is undefined if `edge1` >= `edge2`", 2)
 	end
@@ -84,7 +104,7 @@ end
 
 -- Treat "b" as a boolean value and convert it to 1 for true and 0 for false.
 -- Only 'nil' and 'false' map to 0, and everything else maps to 1.
-function boolToInt(b)
+local function boolToInt(b)
 	return b and 1 or 0
 end
 
@@ -98,7 +118,7 @@ end
 -- Generates a step function, by comparing "x" to "edge".
 -- Parameters "edge" and "x" can either be tables or numbers, but must both be the same type.
 -- Returns either a single number or an array of numbers.
-function step(edge, x)
+local function step(edge, x)
 	if type(edge) ~= type(x) then
 		error("function `step`: `edge` and `x` should be the same type", 2)
 	elseif type(edge) == "number" then
@@ -119,7 +139,7 @@ end
 
 
 -- Escape special characters in a string
-function escape(s)
+local function escape(s)
 	return string.format("%q", s)
 	--[[
 	if type(s) ~= "string" then
@@ -144,20 +164,20 @@ end
 
 -- Return if a string needs to be quoted because it has non-word characters or is a keyword.
 -- Helper function for quote().
-function needsQuote(k)
+local function needsQuote(k)
 	local luaKeywords = {
 		"and", "break", "do", "else", "elseif", "end", "false", "for", "function",
 		"if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true",
 		"until", "while"
 	}
-	return type(k) ~= "string" or (not k:match("^%w+$")) or member(k, luaKeywords)
+	return type(k) ~= "string" or (not k:match("^%w+$")) or M.member(k, luaKeywords)
 end
 
 
 -- See a string representation of "x".
 -- The 'level' is the number of levels of recursion to allow when presenting a table.
 -- If `level` is omitted, there will be no limit.
-function quote(x, level)
+local function quote(x, level)
 	local next_level = level
 	if next_level then
 		next_level = level - 1
@@ -193,7 +213,7 @@ end
 
 
 -- Queue object
-Queue = {}
+local Queue = {}
 Queue.mt = {}
 
 function Queue.new()
@@ -230,7 +250,6 @@ function Queue:pop()
 	return value
 end
 
-
 -- Sparse 2D grid object.
 -- Used for indexing a table with a key that is a 2-element integer list.
 -- Example:
@@ -251,8 +270,8 @@ Sparse2D.mt.__index = function(table, key)
 	if not type(key) == 'table' then return nil end
 	if #key < 2 then return nil end
 	local a, b = key[1], key[2]
-	if not isInteger(a) then return nil end
-	if not isInteger(b) then return nil end
+	if not M.isInteger(a) then return nil end
+	if not M.isInteger(b) then return nil end
 	for k, v in pairs(table) do
 		if k[1] == a and k[2] == b then
 			return v
@@ -265,8 +284,8 @@ Sparse2D.mt.__newindex = function(table, key, val)
 	if not type(key) == 'table' then return nil end
 	if #key < 2 then return nil end
 	local a, b = key[1], key[2]
-	if not isInteger(a) then return nil end
-	if not isInteger(b) then return nil end
+	if not M.isInteger(a) then return nil end
+	if not M.isInteger(b) then return nil end
 	for k, v in pairs(table) do
 		if k[1] == a and k[2] == b then
 			-- This key already exists, so update the value
@@ -280,7 +299,7 @@ end
 
 -- Check if a table contains a value as a member.
 -- If the `item` is a table, this function will only check for reference equality (normal for Lua).
-function member(item, aTable)
+local function member(item, aTable)
 	if type(aTable) ~= 'table' then
 		error('member: argument #2 should be table', 2)
 	end
@@ -292,14 +311,14 @@ end
 
 
 -- Check if a value `x` is an integer number.
-function isInteger(x)
+local function isInteger(x)
 	-- Lua numbers have a fractional part, and for integers modulo 1 is 0.
 	return (type(x) == 'number') and (x % 1) == 0
 end
 
 
 -- Reverse the order of elements in a list (table) `t`.
-function reverseTable(t)
+local function reverseTable(t)
 	local result = {}
 	local len = #t
 	for i, x in ipairs(t) do
@@ -311,7 +330,7 @@ end
 
 -- Returns true if `n` is prime, and false if it is composite.
 -- The `n` should be non-negative.
-function isPrime(n)
+local function isPrime(n)
 	assert(isInteger(n), "isPrime: argument #1 should be an integer")
 	assert(n >= 0, "isPrime: argument #1 should be non-negative")
 	local limit = 1 + math.floor(math.sqrt(n))
@@ -329,7 +348,7 @@ end
 
 -- Returns a table of 1's and 0's to represent N in a binary string.
 -- (I originally created this function for powMod(), but it is not used there and is useful on its own).
-function toBinary(n)
+local function toBinary(n)
 	if not isInteger(n) then return end
 	if n < 0 then return end
 	if n == 0 then return '0' end
@@ -347,7 +366,7 @@ end
 -- Square-and-multiply algorithm to compute the value of:
 -- B^E mod M where B is the base, E is the positive exponent, and M is the modulus.
 -- This function is only for non-negative exponents (including 0).
-function powModNonNegative(base, exponent, modulus)
+local function powModNonNegative(base, exponent, modulus)
 	if (not isInteger(base)) or base <= 0 then return end
 	if (not isInteger(exponent)) or exponent < 0 then return end
 	if (not isInteger(modulus)) or modulus <= 0 then return end
@@ -366,9 +385,9 @@ end
 -- POWer MODulo.
 -- Compute B^E mod M where B is the base, E is the exponent, and M is the modulus.
 -- Works for negative exponents as well.
-function powMod(base, exponent, modulus)
+local function powMod(base, exponent, modulus)
 	if exponent < 0 then
-		return inverseMod(powModNonNegative(base, -exponent, modulus), modulus)
+		return M.inverseMod(powModNonNegative(base, -exponent, modulus), modulus)
 	else
 		return powModNonNegative(base, exponent, modulus)
 	end
@@ -378,7 +397,7 @@ end
 -- POWer MODulo for a modulus that may or may not be prime.
 -- Compute B^E mod M where B is the base, E is the exponent, and M is the modulus.
 -- This function assumes that `modulusIsPrime` is accurate.
-function powModPrime(base, exponent, modulus, modulusIsPrime)
+local function powModPrime(base, exponent, modulus, modulusIsPrime)
 	if modulusIsPrime then
 		-- Using Fermat's little theorem, we know that we can reduce the exponent this way
 		-- when the modulus is prime.
@@ -389,7 +408,7 @@ end
 
 
 -- Floor division (implements C-like integer division for Lua)
-function floorDiv(dividend, divisor)
+local function floorDiv(dividend, divisor)
 	return math.floor(dividend / divisor)
 end
 
@@ -398,7 +417,7 @@ end
 -- Return (g, u, v) for the solution of:
 --   a*u + b*v = gcd(a, b)
 -- (This is the extended Euclidean algorithm).
-function gcd(a, b)
+local function gcd(a, b)
 	if (not isInteger(a)) or a < 0 then return end
 	if (not isInteger(b)) or b < 0 then return end
 	local u, g, x, y = 1, a, 0, b
@@ -420,7 +439,7 @@ end
 
 
 -- Find multiplicative inverse of X mod M
-function inverseMod(x, modulus)
+local function inverseMod(x, modulus)
 	local g, u, v = gcd(x, modulus)
 	if g ~= 1 then
 		-- No inverse
@@ -436,7 +455,7 @@ end
 
 -- Check if two tables are equal.
 -- This is shallow, non deep: i.e. does not compare elements which are tables.
-function tableEqual(a, b)
+local function tableEqual(a, b)
 	if type(a) ~= 'table' or type(b) ~= 'table' then
 		return false
 	end
@@ -460,3 +479,54 @@ function tableEqual(a, b)
 	end
 	return true
 end
+
+-- Check if a 2D point (px, py) is inside a rectangle starting at (rx, ry) with size (rw, rh).
+local function isPointInsideRect(px, py, rx, ry, rw, rh)
+	return rx <= px and px <= rx + rw and ry <= py and py <= ry + rh
+end
+
+-- Convert seconds to hours, minutes, and seconds.
+local function secondsToHMS(seconds)
+	local h = math.floor(seconds / 3600)
+	seconds = math.floor(seconds - h * 3600)
+	assert(0 <= seconds and seconds < 3600)
+	local m = math.floor(seconds / 60)
+	seconds = math.floor(seconds - m * 60)
+	assert(0 <= m and m < 60)
+	local s = seconds
+	assert(0 <= s and s < 60)
+	return h, m, s
+end
+
+-- Export the module
+M.listToString = listToString
+M.keyCount = keyCount
+M.clamp = clamp
+M.mix = mix
+M.remix = remix
+M.remixClamped = remixClamped
+M.ease = ease
+M.cubicUnit = cubicUnit
+M.smoothstep = smoothstep
+M.boolToInt = boolToInt
+M.step = step
+M.escape = escape
+M.needsQuote = needsQuote
+M.quote = quote
+M.Queue = Queue
+M.Sparse2D = Sparse2D
+M.member = member
+M.isInteger = isInteger
+M.reverseTable = reverseTable
+M.isPrime = isPrime
+M.toBinary = toBinary
+M.powModNonNegative = powModNonNegative
+M.powMod = powMod
+M.powModPrime = powModPrime
+M.floorDiv = floorDiv
+M.gcd = gcd
+M.inverseMod = inverseMod
+M.tableEqual = tableEqual
+M.isPointInsideRect = isPointInsideRect
+M.secondsToHMS = secondsToHMS
+return M
